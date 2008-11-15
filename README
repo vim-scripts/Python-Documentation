@@ -1,0 +1,5 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=2443
+
+Shows Python documentation inside Vim either use the function :Pyhelp module, OR select the module in visual mode and then either use the map pw or the function :PyHelp. 
+
+Currently only works for stuff like os.path.abspath (complete modules not as variables) for example doing g = os.path and then trying to find the documentation for g.abspath won't work. So in the future I'd like that to work. 
