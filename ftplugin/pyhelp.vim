@@ -1,6 +1,5 @@
 " pyhelp.vim - Pyhelp
 " Maintainer:   Travis Jeffery
-" [15 Nov 2008 03:53:45 Travis Jeffery (eatsleepgolf@gmail.com)]
 
 " Exit quickly when:
 " - this plugin was already loaded (or disabled)
@@ -13,36 +12,39 @@ let g:loaded_pyhelp = 1
 let s:cpo_save = &cpo
 set cpo&vim
 
-function! VisualText()
-  let temp = @a
-  norm! gv"ay
-  let visual = @a
-  let temp   = @a
-  return temp
-endfunction
+" Code {{{1
 
-function! ShowPydoc(module, ...)
-    let fPath = "/tmp/pyHelp_" . a:module . ".pydoc"
-    execute ":!pydoc " . a:module . " > " . fPath
-    execute ":sp ".fPath
-    set ft=help
-endfunction
+python << EOPYTHON
+import vim
+import sys
+import os
+import re
 
-function! PyHelp()
-    let module = VisualText()
-    let fPath  = "/tmp/pyHelp_" . module . ".pydoc"
-    execute ":!pydoc " . module . " > " . fPath
-    execute ":sp " .fPath
-    set ft=help
-endfunction
+def py_doc():
+    cur_buf  = vim.current.buffer
+    buf_name = cur_buf.name
+    buf_txt  = "\n".join(cur_buf[:])
+    current_word = vim.eval('expand("<cword>")')
+    one_current_word = current_word.split(".")[0]
+    m = re.search("%s(=| =)(.*)(\(|)" % one_current_word, buf_txt)
+    if m == None:
+        cmd = "help(%s)" % current_word
+        return eval(cmd)
+    else:
+        m = m.group(2)
+        m = re.sub("\(.*", "", m)    
+        g = re.search("(\(.*\))", m)
+        if g != None:
+            m = m.strip(g.group(1))
+        m = m.lstrip()
+        cmd = "help(%s)" % m
+        return eval(cmd)
+EOPYTHON
 
-" Commands and Maps {{{1
+command! -nargs=0 PyDoc exec("py py_doc()")
+noremap K :PyDoc<CR>
 
-command! -range VisualText call VisualText()
-command! -nargs=+ Pyhelp :call ShowPydoc("<args>")
-command! -range PyHelp call PyHelp()
-vnoremap ph :PyHelp<CR>
-" 1}}}
+" }}}1
 
 let &cpo = s:cpo_save
 
